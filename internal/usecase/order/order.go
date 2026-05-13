@@ -28,5 +28,6 @@ func (u *UseCase) CreateOrder(ctx context.Context, value *order.Order) (*order.O
 	if err != nil {
 		return nil, err
 	}
+
 	return u.repo.GetOrderByID(ctx, value.ID)
 }

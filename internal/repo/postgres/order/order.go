@@ -22,3 +22,11 @@ func (r *Repo) GetOrderByID(ctx context.Context, id uuid.UUID) (*order.Order, er
 	}
 	return entity, nil
 }
+
+func (r *Repo) UpdateOrderStatus(ctx context.Context, orderID uuid.UUID, statusID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Model(&order.Order{}).
+		Where("id = ?", orderID).
+		Update("status_id", statusID).
+		Error
+}

@@ -28,10 +28,22 @@ type DBConfig struct {
 	HealthCheckPeriod time.Duration `env:"HEALTH_CHECK_PERIOD"`
 }
 
+type EpayConfig struct {
+	Duration     time.Duration `env:"DURATION"`
+	AuthHost     string        `env:"AUTH_HOST"`
+	Host         string        `env:"HOST"`
+	TerminalID   string        `env:"TERMINAL_ID"`
+	ClientSecret string        `env:"CLIENT_SECRET"`
+	ClientID     string        `env:"CLIENT_ID"`
+	SecretHash   string        `env:"SECRET_HASH"`
+	PublicKey    string        `env:"PUBLIC_KEY"`
+}
+
 type Config struct {
 	HTTPAddr string     `env:"HTTP_ADDR" envDefault:":8080"`
 	HTTP     HTTPConfig `envPrefix:"HTTP_"`
 	DB       DBConfig   `envPrefix:"DB_"`
+	Epayment EpayConfig `envPrefix:"EPAYMENT_"`
 }
 
 func ReadEnv() (*Config, error) {
