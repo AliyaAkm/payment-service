@@ -39,11 +39,18 @@ type EpayConfig struct {
 	PublicKey    string        `env:"PUBLIC_KEY"`
 }
 
+type NotificationServiceConfig struct {
+	URL            string        `env:"URL" envDefault:"http://localhost:8087"`
+	Timeout        time.Duration `env:"TIMEOUT" envDefault:"5s"`
+	InternalAPIKey string        `env:"INTERNAL_API_KEY" envDefault:""`
+}
+
 type Config struct {
-	HTTPAddr string     `env:"HTTP_ADDR" envDefault:":8080"`
-	HTTP     HTTPConfig `envPrefix:"HTTP_"`
-	DB       DBConfig   `envPrefix:"DB_"`
-	Epayment EpayConfig `envPrefix:"EPAYMENT_"`
+	HTTPAddr     string                    `env:"HTTP_ADDR" envDefault:":8080"`
+	HTTP         HTTPConfig                `envPrefix:"HTTP_"`
+	DB           DBConfig                  `envPrefix:"DB_"`
+	Epayment     EpayConfig                `envPrefix:"EPAYMENT_"`
+	Notification NotificationServiceConfig `envPrefix:"NOTIFICATION_SERVICE_"`
 }
 
 func ReadEnv() (*Config, error) {

@@ -28,3 +28,7 @@ type SubscriptionRepo interface {
 	CreateSubscription(ctx context.Context, value *subscription.Subscription) error
 	GetSubscriptionByID(ctx context.Context, id uuid.UUID) (*subscription.Subscription, error)
 }
+
+type NotificationSender interface {
+	SendEvent(ctx context.Context, userID uuid.UUID, event string, data map[string]any) error
+}

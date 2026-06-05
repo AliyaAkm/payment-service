@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"payment-service/internal/http/middleware"
 	"payment-service/internal/http/router"
+	"payment-service/internal/service/notification"
 	"syscall"
 
 	epaymenthandler "payment-service/internal/http/handlers/epayment"
@@ -85,9 +86,21 @@ func main() {
 	// subscription
 	subscriptionRepo := subscriptionrepo.New(db)
 
+	var notificationClient paymentusecase.NotificationSender
+	if cfg.Notification.InternalAPIKey != "" {
+		notificationClient, err = notification.NewClient(notification.ClientConfig{
+			BaseURL:        cfg.Notification.URL,
+			Timeout:        cfg.Notification.Timeout,
+			InternalAPIKey: cfg.Notification.InternalAPIKey,
+		})
+		if err != nil {
+			log.Fatal("error configuring notification service client:", err)
+		}
+	}
+
 	// payment
 	paymentRepo := paymentrepo.NewRepo(db)
-	paymentUseCase := paymentusecase.New(orderRepo, paymentRepo, payment, orderstatusRepo, subscriptionRepo, cfg.Epayment.PublicKey, cfg.Epayment.TerminalID)
+	paymentUseCase := paymentusecase.New(orderRepo, paymentRepo, payment, orderstatusRepo, subscriptionRepo, cfg.Epayment.PublicKey, cfg.Epayment.TerminalID, notificationClient)
 	paymentHandler := epaymenthandler.NewHandler(payment, paymentUseCase)
 
 	handler := router.Handler{

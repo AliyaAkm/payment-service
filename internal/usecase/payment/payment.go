@@ -57,13 +57,16 @@ func (u *UseCase) CreatePayment(ctx context.Context, request epayment.PaymentReq
 
 	_, err = u.paymentClient.CreatePayment(ctx, request)
 	if err != nil {
+		u.sendPaymentEvent(ctx, order, "payment_failed", request.InvoiceID)
 		return nil, err
 	}
 	transactionInfo, err := u.paymentClient.GetStatusTransaction(ctx, request.InvoiceID)
 	if err != nil {
+		u.sendPaymentEvent(ctx, order, "payment_failed", request.InvoiceID)
 		return nil, err
 	}
 	var status *orderstatus.OrderStatus
+	paymentEvent := "payment_failed"
 	if transactionInfo.ResultCode == "100" {
 		status, err = u.orderStatusRepo.GetOrderStatusByCode(ctx, statusPaid)
 		if err != nil {
@@ -80,6 +83,7 @@ func (u *UseCase) CreatePayment(ctx context.Context, request epayment.PaymentReq
 		if err != nil {
 			return nil, err
 		}
+		paymentEvent = "payment_succeeded"
 	} else {
 		status, err = u.orderStatusRepo.GetOrderStatusByCode(ctx, statusCanceled)
 		if err != nil {
@@ -107,7 +111,22 @@ func (u *UseCase) CreatePayment(ctx context.Context, request epayment.PaymentReq
 	if err != nil {
 		return nil, err
 	}
+	u.sendPaymentEvent(ctx, order, paymentEvent, request.InvoiceID)
 	return order, nil
+}
+
+func (u *UseCase) sendPaymentEvent(ctx context.Context, order *order.Order, event string, invoiceID string) {
+	if u.notification == nil || order == nil {
+		return
+	}
+
+	_ = u.notification.SendEvent(ctx, order.UserID, event, map[string]any{
+		"orderId":   order.ID.String(),
+		"courseId":  order.CourseID.String(),
+		"amount":    order.Amount,
+		"currency":  order.Currency,
+		"invoiceId": invoiceID,
+	})
 }
 
 func generateInvoiceID() string {
